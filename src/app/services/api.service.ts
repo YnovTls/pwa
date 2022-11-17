@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { PexelResponse } from './pexels.model';
+import { PexelResponse } from '../pexels.model';
 import { Observable } from 'rxjs';
 
 const API_BASE_URL = 'https://api.pexels.com/v1';

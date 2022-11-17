@@ -1,7 +1,8 @@
 import { Component } from '@angular/core';
-import { catchError, map, of } from 'rxjs';
-import { ApiService } from './api.service';
+import { catchError, map, of, tap } from 'rxjs';
+import { ApiService } from './services/api.service';
 import { Photo } from './pexels.model';
+import { Favorite, FavoriteService } from './services/favorite.service';
 
 @Component({
   selector: 'app-root',
@@ -9,12 +10,26 @@ import { Photo } from './pexels.model';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
+  private favoriteList: Favorite[] = [];
+
   public photos: Photo[] = [];
   public searchValue: string = 'rocket';
   public hasError: boolean = false;
+  public favoriteId: number = 0;
 
-  constructor(private apiService: ApiService) {
+  constructor(
+    private readonly apiService: ApiService,
+    private favoriteService: FavoriteService
+  ) {
     this.search();
+
+    this.favoriteService
+      .fetchFavorites()
+      .pipe(
+        map((favorites) => (this.favoriteList = favorites)),
+        tap(() => this.setFavorite())
+      )
+      .subscribe();
   }
 
   public search(): void {
@@ -25,6 +40,7 @@ export class AppComponent {
           map((response) => {
             this.photos = response.photos;
             this.hasError = false;
+            this.setFavorite();
           }),
           catchError((err) => of(this.onError(err)))
         )
@@ -32,8 +48,32 @@ export class AppComponent {
     }
   }
 
+  public async addFavorite(photoId: number): Promise<void> {
+    const favorite: Favorite | undefined = this.favoriteList.find(
+      (f) => f.search === this.searchValue
+    );
+
+    if (favorite) {
+      favorite.photoId = photoId;
+      await this.favoriteService.updateFavorite(favorite);
+    } else {
+      await this.favoriteService.addNewFavorite({
+        id: '',
+        photoId,
+        search: this.searchValue,
+      });
+    }
+  }
+
   private onError(error: any): void {
     console.log(error);
     this.hasError = true;
+  }
+
+  private setFavorite(): void {
+    const favorite: Favorite | undefined = this.favoriteList.find((f) =>
+      this.photos.find((p) => p.id === f.photoId)
+    );
+    this.favoriteId = favorite ? favorite.photoId : 0;
   }
 }

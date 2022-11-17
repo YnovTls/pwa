@@ -9,8 +9,12 @@
   </div>
 
   <div class="photos">
-    <div class="photo" *ngFor="let photo of photos">
-      <img [src]="photo.src.tiny" />
+    <div
+      class="photo"
+      *ngFor="let photo of photos"
+      [ngClass]="{ selected: photo.id === favoriteId }"
+    >
+      <img [src]="photo.src.tiny" (click)="addFavorite(photo.id)" />
     </div>
   </div>
 </div>
