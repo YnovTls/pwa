@@ -26,5 +26,24 @@
         ]
       }
     }
+  ],
+  "dataGroups": [
+    {
+      "name": "pexels",
+      "version": 1,
+      "urls": [
+        "https://images.pexels.com/photos/**",
+        "https://api.pexels.com/v1/search"
+      ],
+      "cacheConfig": {
+        "maxAge": "1d",
+        "maxSize": 100,
+        "strategy": "performance",
+        "timeout": "30s"
+      },
+      "cacheQueryOptions": {
+        "ignoreSearch": false
+      }
+    }
   ]
 }
