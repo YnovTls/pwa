@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "web-mobile-7fc66": {
+      "hosting": {
+        "my-pwa-app": [
+          "web-mobile-7fc66"
+        ]
+      }
+    }
+  },
+  "projects": {
+    "default": "web-mobile-7fc66"
+  }
+}
