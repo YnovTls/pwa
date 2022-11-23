@@ -3,6 +3,7 @@ import { catchError, map, of, tap } from 'rxjs';
 import { ApiService } from './services/api.service';
 import { Photo } from './pexels.model';
 import { Favorite, FavoriteService } from './services/favorite.service';
+import { UpdateService } from './services/update.service';
 
 @Component({
   selector: 'app-root',
@@ -17,10 +18,21 @@ export class AppComponent {
   public hasError: boolean = false;
   public favoriteId: number = 0;
 
+  public updateDetected: boolean = false;
+  public updateReady: boolean = false;
+
   constructor(
     private readonly apiService: ApiService,
-    private favoriteService: FavoriteService
+    private favoriteService: FavoriteService,
+    private updateService: UpdateService
   ) {
+    this.updateService.updateDetected$
+      .pipe(map((state) => (this.updateDetected = state)))
+      .subscribe();
+    this.updateService.updateReady$
+      .pipe(map((state) => (this.updateReady = state)))
+      .subscribe();
+
     this.search();
 
     this.favoriteService
@@ -30,6 +42,10 @@ export class AppComponent {
         tap(() => this.setFavorite())
       )
       .subscribe();
+  }
+
+  public forceUpdate(): void {
+    this.updateService.forceUpdate();
   }
 
   public search(): void {

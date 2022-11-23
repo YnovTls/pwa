@@ -1,11 +1,20 @@
 <div class="container">
   <div class="actions">
+    <h1>A picture for a word</h1>
     <input
       type="text"
       [ngClass]="{ error: hasError }"
       [(ngModel)]="searchValue"
       (keydown.enter)="search()"
     />
+
+    <button
+      *ngIf="updateDetected"
+      [disabled]="!updateReady"
+      (click)="forceUpdate()"
+    >
+      Force Update
+    </button>
   </div>
 
   <div class="photos">
