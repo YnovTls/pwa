@@ -1,20 +1,21 @@
-import { Component } from '@angular/core';
-import { catchError, map, of, tap } from 'rxjs';
-import { ApiService } from './services/api.service';
-import { Photo } from './pexels.model';
-import { Favorite, FavoriteService } from './services/favorite.service';
-import { UpdateService } from './services/update.service';
+import { Component } from "@angular/core";
+import { catchError, map, of, tap } from "rxjs";
+import { ApiService } from "./services/api.service";
+import { Photo } from "./pexels.model";
+import { Favorite, FavoriteService } from "./services/favorite.service";
+import { UpdateService } from "./services/update.service";
+import { NotificationsService } from "./services/notifications.service";
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss'],
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
 })
 export class AppComponent {
   private favoriteList: Favorite[] = [];
 
   public photos: Photo[] = [];
-  public searchValue: string = 'rocket';
+  public searchValue: string = "rocket";
   public hasError: boolean = false;
   public favoriteId: number = 0;
 
@@ -24,22 +25,19 @@ export class AppComponent {
   constructor(
     private readonly apiService: ApiService,
     private favoriteService: FavoriteService,
-    private updateService: UpdateService
+    private updateService: UpdateService,
+    private readonly notificationService: NotificationsService
   ) {
-    this.updateService.updateDetected$
-      .pipe(map((state) => (this.updateDetected = state)))
-      .subscribe();
-    this.updateService.updateReady$
-      .pipe(map((state) => (this.updateReady = state)))
-      .subscribe();
-
+    this.updateService.updateDetected$.pipe(map((state) => (this.updateDetected = state))).subscribe();
+    this.updateService.updateReady$.pipe(map((state) => (this.updateReady = state))).subscribe();
     this.search();
 
     this.favoriteService
       .fetchFavorites()
       .pipe(
         map((favorites) => (this.favoriteList = favorites)),
-        tap(() => this.setFavorite())
+        tap(() => this.setFavorite()),
+        tap(() => this.sendNotificationWhenFavoritesChanged())
       )
       .subscribe();
   }
@@ -49,7 +47,7 @@ export class AppComponent {
   }
 
   public search(): void {
-    if (this.searchValue !== '') {
+    if (this.searchValue !== "") {
       this.apiService
         .fetchImages(this.searchValue)
         .pipe(
@@ -57,6 +55,7 @@ export class AppComponent {
             this.photos = response.photos;
             this.hasError = false;
             this.setFavorite();
+            this.sendNotificationWhenImagesReady();
           }),
           catchError((err) => of(this.onError(err)))
         )
@@ -65,16 +64,14 @@ export class AppComponent {
   }
 
   public async addFavorite(photoId: number): Promise<void> {
-    const favorite: Favorite | undefined = this.favoriteList.find(
-      (f) => f.search === this.searchValue
-    );
+    const favorite: Favorite | undefined = this.favoriteList.find((f) => f.search === this.searchValue);
 
     if (favorite) {
       favorite.photoId = photoId;
       await this.favoriteService.updateFavorite(favorite);
     } else {
       await this.favoriteService.addNewFavorite({
-        id: '',
+        id: "",
         photoId,
         search: this.searchValue,
       });
@@ -87,9 +84,15 @@ export class AppComponent {
   }
 
   private setFavorite(): void {
-    const favorite: Favorite | undefined = this.favoriteList.find((f) =>
-      this.photos.find((p) => p.id === f.photoId)
-    );
+    const favorite: Favorite | undefined = this.favoriteList.find((f) => this.photos.find((p) => p.id === f.photoId));
     this.favoriteId = favorite ? favorite.photoId : 0;
+  }
+
+  private sendNotificationWhenImagesReady(): void {
+    this.notificationService.generateNotification("Images ready", "The images are loaded !");
+  }
+
+  private sendNotificationWhenFavoritesChanged(): void {
+    this.notificationService.generateNotification("Favorites", "Favorites Changed !");
   }
 }

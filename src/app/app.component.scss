@@ -53,3 +53,13 @@
     }
   }
 }
+
+@media (max-width: 700px) {
+  .container {
+    grid-template-rows: 150px 1fr;
+    .actions {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+}
